@@ -4,129 +4,145 @@ from app.main import app
 
 client = TestClient(app)
 
-# Helper to generate valid task data
-def valid_task_data(**overrides):
+# --- Test Case 1: create_task_with_valid_data ---
+def test_create_task_with_valid_data():
     data = {
         "title": "Buy groceries",
         "description": "Milk, Bread, Eggs",
-        "due_date": "2024-07-01",
-        "priority": 3,
-        "user_name": "alice"
+        "due_date": "2024-07-01"
     }
-    data.update(overrides)
-    return data
-
-@pytest.fixture(autouse=True)
-def clear_tasks_file(monkeypatch, tmp_path):
-    # Patch TaskRepository to use a temp file for isolation
-    from app.repositories import task_repository
-    monkeypatch.setattr(task_repository, "TaskRepository", lambda: task_repository.TaskRepository(str(tmp_path / "tasks.json")))
-
-# Test Case 1: Create Task - Success
-def test_create_task_success():
-    data = valid_task_data()
     response = client.post("/tasks", json=data)
     assert response.status_code == 201
     resp = response.json()
     assert resp["title"] == data["title"]
     assert resp["description"] == data["description"]
     assert resp["due_date"] == data["due_date"]
-    assert resp["priority"] == data["priority"]
-    assert resp["user_name"] == data["user_name"]
-    assert isinstance(resp["id"], int)
+    assert resp["status"] == "pending"
+    assert resp["id"]
+    assert resp["created_at"]
+    # ISO timestamp check (basic)
+    import re
+    assert re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}", resp["created_at"])
 
-# Test Case 2: Create Task - Missing Title
-def test_create_task_missing_title():
-    data = valid_task_data()
-    data.pop("title")
+# --- Test Case 2: create_task_missing_required_title ---
+def test_create_task_missing_required_title():
+    data = {
+        "description": "Milk, Bread, Eggs",
+        "due_date": "2024-07-01"
+    }
     response = client.post("/tasks", json=data)
     assert response.status_code == 422
     resp = response.json()
-    assert any(
-        err["loc"][-1] == "title" and err["msg"] == "field required"
-        for err in resp["detail"]
-    )
+    assert resp["detail"] == "Field 'title' is required"
 
-# Test Case 3: Create Task - Empty Title
-def test_create_task_empty_title():
-    data = valid_task_data(title="")
-    response = client.post("/tasks", json=data)
-    assert response.status_code == 422
-    resp = response.json()
-    assert any(
-        err["loc"][-1] == "title" and "ensure this value has at least 1 characters" in err["msg"]
-        for err in resp["detail"]
-    )
-
-# Test Case 4: Create Task - Title Max Length
-def test_create_task_title_max_length():
-    max_title = "T" * 100  # Model uses max_length=100
-    data = valid_task_data(title=max_title)
-    response = client.post("/tasks", json=data)
-    assert response.status_code == 201
-    resp = response.json()
-    assert resp["title"] == max_title
-
-# Test Case 5: Create Task - Title Too Long
-def test_create_task_title_too_long():
-    too_long_title = "T" * 101  # Model uses max_length=100
-    data = valid_task_data(title=too_long_title)
-    response = client.post("/tasks", json=data)
-    assert response.status_code == 422
-    resp = response.json()
-    assert any(
-        err["loc"][-1] == "title" and "ensure this value has at most 100 characters" in err["msg"]
-        for err in resp["detail"]
-    )
-
-# Test Case 6: Create Task - Invalid Due Date Format
-def test_create_task_invalid_due_date_format():
-    data = valid_task_data(due_date="07-04-2024")
-    response = client.post("/tasks", json=data)
-    assert response.status_code == 422
-    resp = response.json()
-    assert any(
-        err["loc"][-1] == "due_date" and "invalid date format" in err["msg"]
-        for err in resp["detail"]
-    )
-
-# Test Case 7: Create Task - Missing Description
-def test_create_task_missing_description():
-    data = valid_task_data()
-    data.pop("description")
-    response = client.post("/tasks", json=data)
-    # Model requires description, so expect 422
-    assert response.status_code == 422
-    resp = response.json()
-    assert any(
-        err["loc"][-1] == "description" and err["msg"] == "field required"
-        for err in resp["detail"]
-    )
-
-# Test Case 8: Create Task - Past Due Date
-def test_create_task_past_due_date():
-    data = valid_task_data(due_date="2020-01-01")
-    response = client.post("/tasks", json=data)
-    # No explicit validation for past dates in model, so expect 201 unless implemented
-    # If validation is added, expect 422
-    # Here, we check for 201 (current model)
-    assert response.status_code == 201 or response.status_code == 422
-
-# Test Case 9: Create Task - Extra Fields Ignored
-def test_create_task_extra_fields_ignored():
-    data = valid_task_data(priority=2)
-    data["extra_field"] = "should be ignored"
-    response = client.post("/tasks", json=data)
-    assert response.status_code == 201
-    resp = response.json()
-    assert "extra_field" not in resp
-
-# Test Case 10: Create Task - No JSON Body
-def test_create_task_no_json_body():
+# --- Test Case 3: create_task_with_empty_body ---
+def test_create_task_with_empty_body():
     response = client.post("/tasks", json={})
     assert response.status_code == 422
     resp = response.json()
-    # Should require title, description, due_date, priority, user_name
-    required_fields = {"title", "description", "due_date", "priority", "user_name"}
-    missing_fields = {err["loc"][-1] for err in resp["detail"] if err["msg"] == "field required"}
-    assert required_fields.issubset(missing_fields)
+    assert resp["detail"] == "Field 'title' is required"
+
+# --- Test Case 4: create_task_with_long_title ---
+def test_create_task_with_long_title():
+    long_title = "T" * 255
+    data = {
+        "title": long_title,
+        "description": "Edge case test for long title",
+        "due_date": "2024-07-01"
+    }
+    response = client.post("/tasks", json=data)
+    assert response.status_code == 201
+    resp = response.json()
+    assert resp["title"] == long_title
+    assert resp["description"] == data["description"]
+    assert resp["due_date"] == data["due_date"]
+    assert resp["status"] == "pending"
+    assert resp["id"]
+    assert resp["created_at"]
+
+# --- Test Case 5: create_task_with_title_exceeding_max_length ---
+def test_create_task_with_title_exceeding_max_length():
+    too_long_title = "T" * 256
+    data = {
+        "title": too_long_title,
+        "description": "Overlong title",
+        "due_date": "2024-07-01"
+    }
+    response = client.post("/tasks", json=data)
+    assert response.status_code == 422
+    resp = response.json()
+    assert resp["detail"] == "Title must not exceed 255 characters"
+
+# --- Test Case 6: create_task_with_invalid_due_date_format ---
+def test_create_task_with_invalid_due_date_format():
+    data = {
+        "title": "Pay bills",
+        "description": "Electricity and water",
+        "due_date": "01-07-2024"
+    }
+    response = client.post("/tasks", json=data)
+    assert response.status_code == 422
+    resp = response.json()
+    assert resp["detail"] == "Invalid date format, expected YYYY-MM-DD"
+
+# --- Test Case 7: create_task_without_content_type_header ---
+def test_create_task_without_content_type_header():
+    data = {
+        "title": "Go running",
+        "description": "Run 5km in the park",
+        "due_date": "2024-07-01"
+    }
+    # Send as data, not json, and omit content-type
+    response = client.post("/tasks", data=data)
+    assert response.status_code == 415
+    resp = response.json()
+    assert resp["detail"] == "Unsupported Media Type"
+
+# --- Test Case 8: create_task_with_unexpected_field ---
+def test_create_task_with_unexpected_field():
+    data = {
+        "title": "Read book",
+        "description": "Read 'Clean Code'",
+        "due_date": "2024-07-01",
+        "priority": "high"
+    }
+    response = client.post("/tasks", json=data)
+    assert response.status_code == 422
+    resp = response.json()
+    assert resp["detail"] == "Extra fields are not allowed: 'priority'"
+
+# --- Test Case 9: create_task_with_minimal_required_fields ---
+def test_create_task_with_minimal_required_fields():
+    data = {
+        "title": "Write tests"
+    }
+    response = client.post("/tasks", json=data)
+    assert response.status_code == 201
+    resp = response.json()
+    assert resp["title"] == data["title"]
+    assert resp["description"] is None
+    assert resp["due_date"] is None
+    assert resp["status"] == "pending"
+    assert resp["id"]
+    assert resp["created_at"]
+
+# --- Test Case 10: create_task_with_duplicate_title ---
+def test_create_task_with_duplicate_title():
+    data = {
+        "title": "Unique task"
+    }
+    # First creation
+    response1 = client.post("/tasks", json=data)
+    assert response1.status_code == 201
+    resp1 = response1.json()
+    assert resp1["title"] == data["title"]
+    # Second creation (business rule: accept or reject, here we just check 201 or 409)
+    response2 = client.post("/tasks", json=data)
+    # Accept either 201 (allowed) or 409 (conflict), but must return a valid response
+    assert response2.status_code in (201, 409)
+    if response2.status_code == 201:
+        resp2 = response2.json()
+        assert resp2["title"] == data["title"]
+    elif response2.status_code == 409:
+        resp2 = response2.json()
+        assert "detail" in resp2

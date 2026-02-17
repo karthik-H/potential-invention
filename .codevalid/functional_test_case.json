@@ -223,7 +223,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_5639241587_20240611000000/task_service_create_task.py"
     },
     {
       "implementation_id": "task_repository_add_task",
@@ -396,7 +397,8 @@
           },
           "type": "negative"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_5639241587_20240611000000/task_repository_add_task.py"
     }
   ],
   "component": [],
@@ -674,7 +676,8 @@
           },
           "type": "edge"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_5639241587_20240611000000/main_include_task_router.py"
     },
     {
       "implementation_id": "task_controller_create_task_endpoint",
@@ -1074,7 +1077,8 @@
           },
           "type": "negative"
         }
-      ]
+      ],
+      "test_path": ".codevalid/tests/task_5639241587_20240611000000/task_controller_create_task_endpoint.py"
     }
   ]
 }
