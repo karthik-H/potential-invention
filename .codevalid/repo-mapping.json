@@ -40,8 +40,7 @@
     ],
     "missing_implementations": [
       "No UI component for adding tasks is present in the repository.",
-      "No explicit validation logic for the 'location' field; the TaskCreate model does not define a 'location' field, so this required field is missing.",
-      "No explicit validation for required fields beyond what is defined in the TaskCreate model (location is not enforced)."
+      "No explicit validation for required fields beyond what is defined in the TaskCreate model."
     ]
   }
 }
