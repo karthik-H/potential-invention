@@ -4,199 +4,134 @@
       "implementation_id": "task_service_create_task",
       "test_cases": [
         {
-          "description": "Test creating a task with valid TaskCreate data and user_name. Should log the operation and persist the task successfully.",
-          "id": "tc_create_task_valid_input",
+          "description": "Verify that a task is successfully created when provided with valid TaskCreate data and user_name.",
+          "id": "create_task_positive_valid_input",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_with_valid_input",
+          "name": "Create Task with Valid Input",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Complete the quarterly report",
-                "due_date": "2024-07-01",
-                "priority": "high",
-                "title": "Finish report"
-              },
-              "user_name": "alice"
-            },
-            "then": "Task is persisted via repository.add_task and the created task is returned",
-            "when": "TaskService.create_task is called with valid input"
+            "given": "A valid TaskCreate object with required fields and a valid user_name.",
+            "then": "The task is persisted via repository.add_task, the operation is logged, and the created task or its identifier is returned.",
+            "when": "TaskService.create_task is called with the valid data."
           },
           "type": "positive"
         },
         {
-          "description": "Test creating a task with missing required field 'title'. Should raise a validation error before calling repository.",
-          "id": "tc_create_task_missing_title",
+          "description": "Verify that the function handles missing required TaskCreate fields by raising an error or returning a failure.",
+          "id": "create_task_negative_missing_required_field",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_with_missing_title",
+          "name": "Create Task with Missing Required Field",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Missing title field",
-                "due_date": "2024-07-02",
-                "priority": "medium"
-              },
-              "user_name": "bob"
-            },
-            "then": "A validation error is raised and repository.add_task is not called",
-            "when": "TaskService.create_task is called with missing required fields"
+            "given": "A TaskCreate object missing a required field (e.g., title) and a valid user_name.",
+            "then": "An error is raised or a failure response is returned, and no task is persisted.",
+            "when": "TaskService.create_task is called."
           },
           "type": "negative"
         },
         {
-          "description": "Test creating a task with an empty string as the title. Should handle title validation and raise an error.",
-          "id": "tc_create_task_empty_title",
+          "description": "Verify that the function handles invalid data types for TaskCreate fields.",
+          "id": "create_task_negative_invalid_task_data_type",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_with_empty_title",
+          "name": "Create Task with Invalid TaskCreate Data Type",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Empty title field",
-                "due_date": "2024-07-03",
-                "priority": "low",
-                "title": ""
-              },
-              "user_name": "carol"
-            },
-            "then": "A validation error is raised and repository.add_task is not called",
-            "when": "TaskService.create_task is called with an empty title"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Test creating a task with an extremely long title to check for boundary handling.",
-          "id": "tc_create_task_long_title",
-          "implementation_id": "task_service_create_task",
-          "name": "create_task_with_long_title",
-          "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Boundary test for long title",
-                "due_date": "2024-07-04",
-                "priority": "high",
-                "title": "T.repeat(256)"
-              },
-              "user_name": "dave"
-            },
-            "then": "Either a validation error is raised or task is created if allowed; function should handle accordingly",
-            "when": "TaskService.create_task is called with a long title"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Test creating a task with an invalid due_date (non-date string). Should raise a validation error.",
-          "id": "tc_create_task_invalid_due_date",
-          "implementation_id": "task_service_create_task",
-          "name": "create_task_with_invalid_due_date",
-          "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Due date is invalid",
-                "due_date": "not-a-date",
-                "priority": "medium",
-                "title": "Invalid due date"
-              },
-              "user_name": "eve"
-            },
-            "then": "A validation error is raised and repository.add_task is not called",
-            "when": "TaskService.create_task is called with invalid due_date"
+            "given": "A TaskCreate object with an invalid data type for a field (e.g., title as an integer) and a valid user_name.",
+            "then": "A validation error is raised or a failure response is returned, and no task is persisted.",
+            "when": "TaskService.create_task is called."
           },
           "type": "negative"
         },
         {
-          "description": "Test creating a task with null priority. Should use default or raise a validation error based on schema.",
-          "id": "tc_create_task_null_priority",
+          "description": "Verify that the function handles missing user_name by raising an error or returning a failure.",
+          "id": "create_task_negative_missing_user_name",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_with_null_priority",
+          "name": "Create Task with Missing User Name",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Priority is null",
-                "due_date": "2024-07-05",
-                "priority": null,
-                "title": "Null priority"
-              },
-              "user_name": "frank"
-            },
-            "then": "Task is created with default priority or a validation error is raised",
-            "when": "TaskService.create_task is called with null priority"
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Test handling of repository failure (e.g., database error) during task creation.",
-          "id": "tc_create_task_repository_failure",
-          "implementation_id": "task_service_create_task",
-          "name": "create_task_repository_failure",
-          "test_setup": {
-            "given": {
-              "repository_add_task_side_effect": "DatabaseError",
-              "task_create_data": {
-                "description": "Simulate repository failure",
-                "due_date": "2024-07-06",
-                "priority": "medium",
-                "title": "Trigger DB failure"
-              },
-              "user_name": "grace"
-            },
-            "then": "The exception is propagated or handled as per service design",
-            "when": "TaskService.create_task is called and repository.add_task raises an exception"
+            "given": "A valid TaskCreate object and a missing or None user_name.",
+            "then": "An error is raised or a failure response is returned, and no task is persisted.",
+            "when": "TaskService.create_task is called."
           },
           "type": "negative"
         },
         {
-          "description": "Test to verify that the logging statement is called with the correct user_name and operation.",
-          "id": "tc_create_task_logging_called",
+          "description": "Verify that the function handles TaskCreate.title at the maximum allowed length.",
+          "id": "create_task_edge_long_task_title",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_logging_called",
+          "name": "Create Task with Maximum Length Title",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "Verify logging",
-                "due_date": "2024-07-07",
-                "priority": "high",
-                "title": "Check logging"
-              },
-              "user_name": "hannah"
-            },
-            "then": "A log entry is made with the user_name and creation attempt",
-            "when": "TaskService.create_task is called"
+            "given": "A TaskCreate object with a title at the maximum allowed length (e.g., 255 characters) and a valid user_name.",
+            "then": "The task is successfully created and persisted.",
+            "when": "TaskService.create_task is called."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that the function handles an empty string for TaskCreate.title.",
+          "id": "create_task_edge_empty_task_title",
+          "implementation_id": "task_service_create_task",
+          "name": "Create Task with Empty Title",
+          "test_setup": {
+            "given": "A TaskCreate object with an empty title ('') and a valid user_name.",
+            "then": "A validation error is raised or a failure response is returned.",
+            "when": "TaskService.create_task is called."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that the function handles repository.add_task raising an exception or failing to persist.",
+          "id": "create_task_negative_repository_failure",
+          "implementation_id": "task_service_create_task",
+          "name": "Create Task with Repository Failure",
+          "test_setup": {
+            "given": "A valid TaskCreate object, a valid user_name, and repository.add_task raises an exception (e.g., database error).",
+            "then": "The exception is propagated or handled, and an error is logged or returned.",
+            "when": "TaskService.create_task is called."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that the function can handle TaskCreate.title containing special or Unicode characters.",
+          "id": "create_task_edge_special_characters_in_title",
+          "implementation_id": "task_service_create_task",
+          "name": "Create Task with Special Characters in Title",
+          "test_setup": {
+            "given": "A TaskCreate object with special/unicode characters in the title and a valid user_name.",
+            "then": "The task is created and persisted successfully with correct handling of special characters.",
+            "when": "TaskService.create_task is called."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that a task can be created when only the minimum required fields are provided.",
+          "id": "create_task_positive_minimum_required_fields",
+          "implementation_id": "task_service_create_task",
+          "name": "Create Task with Only Required Fields",
+          "test_setup": {
+            "given": "A TaskCreate object with only required fields set and a valid user_name.",
+            "then": "The task is created and persisted successfully.",
+            "when": "TaskService.create_task is called."
           },
           "type": "positive"
         },
         {
-          "description": "Test creating a task with only the minimal required fields present.",
-          "id": "tc_create_task_minimal_required_fields",
+          "description": "Verify that the function handles a None TaskCreate object.",
+          "id": "create_task_negative_null_task_object",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_with_minimal_required_fields",
+          "name": "Create Task with Null Task Object",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "title": "Minimal fields"
-              },
-              "user_name": "ian"
-            },
-            "then": "Task is created successfully and returned",
-            "when": "TaskService.create_task is called with minimal data"
+            "given": "TaskCreate object is None, and user_name is valid.",
+            "then": "An error is raised or a failure response is returned, and no task is persisted.",
+            "when": "TaskService.create_task is called."
           },
-          "type": "positive"
+          "type": "negative"
         },
         {
-          "description": "Test creating a task with an empty user_name. Should handle missing user_name gracefully.",
-          "id": "tc_create_task_empty_user_name",
+          "description": "Verify behavior when a task is created with a title that already exists (if uniqueness is enforced).",
+          "id": "create_task_edge_duplicate_task_title",
           "implementation_id": "task_service_create_task",
-          "name": "create_task_with_empty_user_name",
+          "name": "Create Task with Duplicate Title",
           "test_setup": {
-            "given": {
-              "task_create_data": {
-                "description": "User name is empty",
-                "due_date": "2024-07-08",
-                "priority": "low",
-                "title": "No user"
-              },
-              "user_name": ""
-            },
-            "then": "Function logs appropriately and creates the task or raises a validation error",
-            "when": "TaskService.create_task is called with empty user_name"
+            "given": "A TaskCreate object with a title that already exists in the system and a valid user_name.",
+            "then": "The function returns an error or a duplicate entry response if uniqueness is enforced, otherwise, the task is created.",
+            "when": "TaskService.create_task is called."
           },
           "type": "edge"
         }
@@ -206,184 +141,172 @@
       "implementation_id": "task_repository_add_task",
       "test_cases": [
         {
-          "description": "Verify that a task with the minimum valid fields can be added successfully.",
-          "id": "add_task_valid_minimal",
+          "description": "Verify that a task is added successfully with valid data and a new unique ID is assigned.",
+          "id": "add_task_basic_success",
           "implementation_id": "task_repository_add_task",
-          "name": "Add Task with Valid Minimal Data",
+          "name": "Add Task Successfully",
           "test_setup": {
-            "given": "A TaskRepository instance with an empty in-memory task list and valid minimal task data (e.g., title: 'Sample Task', description: '', due_date: null).",
-            "then": "A Task object is created with a new unique ID, appended to the task list, saved to the JSON file, and returned.",
-            "when": "TaskRepository.add_task is called with the minimal valid data."
+            "given": "An empty in-memory task list and ID counter starting at 1; valid task data (e.g., title: 'Test Task', description: 'Sample Description')",
+            "then": "A Task object is returned with ID 1, the task is appended to the list, persisted to JSON, and creation is logged",
+            "when": "TaskRepository.add_task is called with the valid task data"
           },
           "type": "positive"
         },
         {
-          "description": "Verify that a task with all possible fields populated is added successfully.",
-          "id": "add_task_valid_full",
+          "description": "Verify that sequential calls increment the ID and all tasks are persisted.",
+          "id": "add_task_multiple_success",
           "implementation_id": "task_repository_add_task",
-          "name": "Add Task with All Fields Populated",
+          "name": "Add Multiple Tasks Sequentially",
           "test_setup": {
-            "given": "A TaskRepository instance with an empty task list and task data containing all fields populated (e.g., title, description, due_date, priority, tags).",
-            "then": "A Task object with a new ID is created, appended, saved, and returned with all fields correctly set.",
-            "when": "TaskRepository.add_task is called with the complete data."
+            "given": "An in-memory task list containing 1 task with ID 1; ID counter at 2; valid new task data",
+            "then": "Two new Task objects are returned with IDs 2 and 3, both tasks are appended, persisted to JSON, and logged",
+            "when": "TaskRepository.add_task is called twice with two sets of valid task data"
           },
           "type": "positive"
         },
         {
-          "description": "Verify that the ID counter increments correctly when multiple tasks are added.",
-          "id": "add_task_id_increment",
+          "description": "Check if the function handles empty title in task data appropriately (edge case, depending on validation rules).",
+          "id": "add_task_empty_title",
           "implementation_id": "task_repository_add_task",
-          "name": "ID Increment on Multiple Adds",
+          "name": "Add Task with Empty Title",
           "test_setup": {
-            "given": "A TaskRepository instance with an empty task list.",
-            "then": "Each returned Task has a unique, incrementing ID, and the tasks are appended and persisted.",
-            "when": "TaskRepository.add_task is called multiple times with different valid task data."
+            "given": "An empty in-memory task list; task data with empty title and valid description",
+            "then": "The Task object is created and persisted, or validation error is raised if title is required",
+            "when": "TaskRepository.add_task is called with the data"
           },
-          "type": "positive"
+          "type": "edge"
         },
         {
-          "description": "Verify that tasks are saved to the JSON file after addition.",
-          "id": "add_task_persistence",
+          "description": "Check behavior when description is missing from task data.",
+          "id": "add_task_missing_description",
           "implementation_id": "task_repository_add_task",
-          "name": "Task Persistence to JSON File",
+          "name": "Add Task with Missing Description",
           "test_setup": {
-            "given": "A TaskRepository instance with access to a valid JSON file and in-memory task list.",
-            "then": "The task is persisted to the JSON file; subsequent loads from the file should include the new task.",
-            "when": "TaskRepository.add_task is called with valid data."
+            "given": "Task data with only title provided, no description",
+            "then": "The Task object is created with a null or default description, or error is raised if description is required",
+            "when": "TaskRepository.add_task is called with the data"
           },
-          "type": "positive"
+          "type": "edge"
         },
         {
-          "description": "Verify that task creation is logged as expected.",
-          "id": "add_task_logging",
-          "implementation_id": "task_repository_add_task",
-          "name": "Log Creation of Task",
-          "test_setup": {
-            "given": "A TaskRepository instance with logging enabled.",
-            "then": "A log entry is created indicating the task was added, including the task ID.",
-            "when": "TaskRepository.add_task is called."
-          },
-          "type": "positive"
-        },
-        {
-          "description": "Verify that adding a task without a required field (title) raises an error or is handled gracefully.",
-          "id": "add_task_invalid_missing_title",
-          "implementation_id": "task_repository_add_task",
-          "name": "Add Task with Missing Required Field (Title)",
-          "test_setup": {
-            "given": "A TaskRepository instance and task data missing the 'title' field.",
-            "then": "An error is raised, or the function returns an error response indicating the missing field.",
-            "when": "TaskRepository.add_task is called with incomplete data."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify that adding a task with an incorrect type for a field results in a handled error.",
+          "description": "Test input where task data fields are not of expected type (e.g., title is a number).",
           "id": "add_task_invalid_type",
           "implementation_id": "task_repository_add_task",
-          "name": "Add Task with Invalid Field Type",
+          "name": "Add Task with Invalid Data Type",
           "test_setup": {
-            "given": "A TaskRepository instance and task data where a field (e.g., due_date) is not the expected type (e.g., string instead of datetime).",
-            "then": "An error is raised, or the function returns an error response indicating the invalid type.",
-            "when": "TaskRepository.add_task is called."
+            "given": "Task data with title: 12345 (number), description: 'Test'",
+            "then": "Error is raised (e.g., TypeError or ValidationError) and task is not persisted",
+            "when": "TaskRepository.add_task is called"
           },
           "type": "negative"
         },
         {
-          "description": "Verify the behavior when attempting to add a task with a title already existing in the task list (if title uniqueness is enforced).",
+          "description": "Test edge case where title length is at maximum allowed size or exceeds it.",
+          "id": "add_task_large_title",
+          "implementation_id": "task_repository_add_task",
+          "name": "Add Task with Very Large Title",
+          "test_setup": {
+            "given": "Task data with title: 'T.repeat(255)', description: 'Sample'",
+            "then": "Task is created and persisted if within limit; error is raised if limit exceeded",
+            "when": "TaskRepository.add_task is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Simulate scenario where the persistence JSON file does not exist.",
+          "id": "add_task_json_file_missing",
+          "implementation_id": "task_repository_add_task",
+          "name": "Add Task When JSON File is Missing",
+          "test_setup": {
+            "given": "JSON file for tasks is deleted or missing; valid task data",
+            "then": "Function creates a new JSON file, persists tasks, and returns created Task",
+            "when": "TaskRepository.add_task is called"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Test error scenario when JSON file is read-only and cannot be written.",
+          "id": "add_task_json_file_readonly",
+          "implementation_id": "task_repository_add_task",
+          "name": "Add Task When JSON File is Read-Only",
+          "test_setup": {
+            "given": "JSON file exists but has read-only permissions; valid task data",
+            "then": "Error is raised (e.g., IOError), task is not persisted, and error is logged",
+            "when": "TaskRepository.add_task is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Test adding a task with a title that already exists in the repository.",
           "id": "add_task_duplicate_title",
           "implementation_id": "task_repository_add_task",
           "name": "Add Task with Duplicate Title",
           "test_setup": {
-            "given": "A TaskRepository instance with a task in the list with title 'Meeting'.",
-            "then": "If title uniqueness is enforced, an error is raised. Otherwise, the task is added with a new ID.",
-            "when": "TaskRepository.add_task is called with a new task with the same title."
+            "given": "Task list contains a task with title 'Test Task'; ID counter at next value; task data with same title",
+            "then": "Task is created and persisted with new ID; repository allows duplicate titles unless otherwise specified",
+            "when": "TaskRepository.add_task is called"
           },
           "type": "edge"
         },
         {
-          "description": "Verify that tasks with empty optional fields are handled correctly.",
-          "id": "add_task_empty_fields",
+          "description": "Test error scenario when None is passed as task data.",
+          "id": "add_task_none_data",
           "implementation_id": "task_repository_add_task",
-          "name": "Add Task with Empty Optional Fields",
+          "name": "Add Task with None as Data",
           "test_setup": {
-            "given": "A TaskRepository instance and task data with optional fields set to empty values (e.g., description: '', tags: []).",
-            "then": "The task is added successfully, and optional fields are stored as empty.",
-            "when": "TaskRepository.add_task is called."
+            "given": "None is passed for task data",
+            "then": "Error is raised (e.g., TypeError or ValueError); no task is persisted",
+            "when": "TaskRepository.add_task is called"
           },
-          "type": "edge"
+          "type": "negative"
         },
         {
-          "description": "Verify behavior when task fields contain very large values (e.g., title 255 characters, description 2048 characters).",
-          "id": "add_task_large_field_values",
+          "description": "Verify that the first task is assigned ID 1 and persists correctly.",
+          "id": "add_task_empty_list",
           "implementation_id": "task_repository_add_task",
-          "name": "Add Task with Large Field Values",
+          "name": "Add Task to Empty List",
           "test_setup": {
-            "given": "A TaskRepository instance and task data with very large strings for fields.",
-            "then": "The task is added if within allowed limits, or an error is raised if limits are exceeded.",
-            "when": "TaskRepository.add_task is called."
+            "given": "In-memory task list is empty; ID counter at 1; valid task data",
+            "then": "Task is created with ID 1, appended, persisted, and logged",
+            "when": "TaskRepository.add_task is called"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Test behavior when ID counter is at a large number (e.g., near max int).",
+          "id": "add_task_id_counter_large",
+          "implementation_id": "task_repository_add_task",
+          "name": "Add Task with Large ID Counter",
+          "test_setup": {
+            "given": "ID counter is set to 2147483647; valid task data",
+            "then": "Task is created with ID 2147483647, appended, persisted, and logged; check for overflow issues",
+            "when": "TaskRepository.add_task is called"
           },
           "type": "edge"
         },
         {
-          "description": "Verify that tasks with special characters are handled and stored correctly.",
+          "description": "Simulate a scenario where task creation logging fails.",
+          "id": "add_task_logging_failure",
+          "implementation_id": "task_repository_add_task",
+          "name": "Add Task with Logging Failure",
+          "test_setup": {
+            "given": "Valid task data; logging system is misconfigured or unavailable",
+            "then": "Task is created, persisted, but logging fails; function handles/logs error gracefully",
+            "when": "TaskRepository.add_task is called"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Test adding task with title and description containing special characters.",
           "id": "add_task_special_characters",
           "implementation_id": "task_repository_add_task",
-          "name": "Add Task with Special Characters in Fields",
+          "name": "Add Task with Special Characters",
           "test_setup": {
-            "given": "A TaskRepository instance and task data with special characters (e.g., emoji, newline, quotes) in title or description.",
-            "then": "The task is added successfully, and special characters are preserved in storage.",
-            "when": "TaskRepository.add_task is called."
+            "given": "Task data with title: '\u2603\ufe0f\u2728\ud83d\ude80', description: '\u7279\u6b8a\u5b57\u7b26\u6d4b\u8bd5'",
+            "then": "Task is created, persisted with special characters intact, and logged",
+            "when": "TaskRepository.add_task is called"
           },
           "type": "edge"
-        },
-        {
-          "description": "Verify the behavior when the JSON file for persistence does not exist.",
-          "id": "add_task_json_file_missing",
-          "implementation_id": "task_repository_add_task",
-          "name": "Add Task When JSON File Is Missing",
-          "test_setup": {
-            "given": "A TaskRepository instance referencing a non-existent JSON file.",
-            "then": "The function creates the file and persists the task, or raises an error if unable to create the file.",
-            "when": "TaskRepository.add_task is called."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify the behavior when the JSON file is read-only and cannot be written to.",
-          "id": "add_task_json_file_readonly",
-          "implementation_id": "task_repository_add_task",
-          "name": "Add Task When JSON File Is Read-Only",
-          "test_setup": {
-            "given": "A TaskRepository instance with the JSON file set to read-only permissions.",
-            "then": "An error is raised indicating failure to persist, and the task is not added to the in-memory list.",
-            "when": "TaskRepository.add_task is called."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify the behavior when the ID counter exceeds the maximum allowed value (e.g., integer overflow).",
-          "id": "add_task_id_overflow",
-          "implementation_id": "task_repository_add_task",
-          "name": "Add Task When ID Counter Exceeds Max Value",
-          "test_setup": {
-            "given": "A TaskRepository instance with the ID counter set to the maximum integer value.",
-            "then": "An error is raised, or the function handles the overflow gracefully (wraps or resets the ID counter).",
-            "when": "TaskRepository.add_task is called."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify the behavior when the existing JSON file contains invalid or corrupted data.",
-          "id": "add_task_invalid_json_format",
-          "implementation_id": "task_repository_add_task",
-          "name": "Add Task When Existing JSON File Is Invalid",
-          "test_setup": {
-            "given": "A TaskRepository instance with a JSON file containing corrupted content.",
-            "then": "An error is raised, or the function handles the corruption and resets the file.",
-            "when": "TaskRepository.add_task is called."
-          },
-          "type": "negative"
         }
       ]
     }
@@ -394,15 +317,13 @@
       "implementation_id": "main_include_task_router",
       "test_cases": [
         {
-          "description": "Test creating a new task with all required fields provided and valid data.",
-          "id": "tc_create_task_positive_valid",
+          "description": "Verify that a task can be successfully created with valid input data.",
+          "id": "tc_create_task_valid",
           "implementation_id": "main_include_task_router",
-          "name": "Create Task with Valid Data",
+          "name": "Create Task - Valid Request",
           "request_body_json": {
-            "description": "Purchase milk and eggs",
-            "due_date": "2024-07-01",
-            "priority": "high",
-            "title": "Buy groceries"
+            "description": "This is a test task.",
+            "title": "Test Task"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -410,30 +331,26 @@
           "request_method": "POST",
           "request_url": "/tasks",
           "response_body_json": {
-            "description": "Purchase milk and eggs",
-            "due_date": "2024-07-01",
-            "id": "auto-generated",
-            "priority": "high",
+            "description": "This is a test task.",
+            "id": "generated_task_id",
             "status": "pending",
-            "title": "Buy groceries"
+            "title": "Test Task"
           },
           "response_status_code": 201,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "A new task is created and returned with status 201",
-            "when": "A valid POST request is sent to /tasks"
+            "given": "No existing tasks",
+            "then": "A new task is created and its details are returned",
+            "when": "A valid POST request is made to /tasks"
           },
           "type": "positive"
         },
         {
-          "description": "Test creating a task without providing the required 'title' field.",
-          "id": "tc_create_task_negative_missing_title",
+          "description": "Verify that creating a task without the required 'title' field returns a validation error.",
+          "id": "tc_create_task_missing_title",
           "implementation_id": "main_include_task_router",
-          "name": "Create Task with Missing Title",
+          "name": "Create Task - Missing Title",
           "request_body_json": {
-            "description": "Read a book",
-            "due_date": "2024-07-02",
-            "priority": "medium"
+            "description": "No title present"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -454,18 +371,21 @@
           },
           "response_status_code": 422,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "Validation error is returned with status 422",
-            "when": "A POST request is sent to /tasks without 'title'"
+            "given": "No existing tasks",
+            "then": "A 422 validation error is returned",
+            "when": "A POST request is made to /tasks without the 'title' field"
           },
           "type": "negative"
         },
         {
-          "description": "Test creating a task with an empty JSON body.",
-          "id": "tc_create_task_negative_empty_body",
+          "description": "Verify that creating a task with an empty string for 'title' returns a validation error.",
+          "id": "tc_create_task_empty_title",
           "implementation_id": "main_include_task_router",
-          "name": "Create Task with Empty Body",
-          "request_body_json": {},
+          "name": "Create Task - Empty Title",
+          "request_body_json": {
+            "description": "Description present",
+            "title": ""
+          },
           "request_headers": {
             "Content-Type": "application/json"
           },
@@ -478,29 +398,54 @@
                   "body",
                   "title"
                 ],
-                "msg": "field required",
-                "type": "value_error.missing"
+                "msg": "Title must not be empty",
+                "type": "value_error"
               }
             ]
           },
           "response_status_code": 422,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "Validation error is returned with status 422",
-            "when": "A POST request is sent to /tasks with empty body"
+            "given": "No existing tasks",
+            "then": "A 422 validation error is returned",
+            "when": "A POST request is made to /tasks with an empty 'title'"
           },
           "type": "negative"
         },
         {
-          "description": "Test creating a task with an invalid value for the 'priority' field.",
-          "id": "tc_create_task_negative_invalid_priority",
+          "description": "Verify that creating a task without 'description' (if optional) is successful.",
+          "id": "tc_create_task_missing_description",
           "implementation_id": "main_include_task_router",
-          "name": "Create Task with Invalid Priority Value",
+          "name": "Create Task - Missing Description",
           "request_body_json": {
-            "description": "Wash and dry clothes",
-            "due_date": "2024-07-03",
-            "priority": "urgent",
-            "title": "Do laundry"
+            "title": "Task with no description"
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "description": "",
+            "id": "generated_task_id",
+            "status": "pending",
+            "title": "Task with no description"
+          },
+          "response_status_code": 201,
+          "test_setup": {
+            "given": "No existing tasks",
+            "then": "A new task is created with an empty description",
+            "when": "A POST request is made to /tasks with only 'title'"
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verify that creating a task with a title exceeding maximum length returns a validation error.",
+          "id": "tc_create_task_long_title",
+          "implementation_id": "main_include_task_router",
+          "name": "Create Task - Title Too Long",
+          "request_body_json": {
+            "description": "Description for overly long title",
+            "title": "T.repeat(256)"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -512,30 +457,276 @@
               {
                 "loc": [
                   "body",
-                  "priority"
+                  "title"
                 ],
-                "msg": "value is not a valid enumeration member",
-                "type": "type_error.enum"
+                "msg": "Title must be at most 255 characters",
+                "type": "value_error"
               }
             ]
           },
           "response_status_code": 422,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "Validation error is returned with status 422",
-            "when": "A POST request is sent to /tasks with an invalid 'priority'"
+            "given": "No existing tasks",
+            "then": "A 422 validation error is returned",
+            "when": "A POST request is made to /tasks with title length > 255"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that creating a task with a title at the maximum allowed length is successful.",
+          "id": "tc_create_task_max_length_title",
+          "implementation_id": "main_include_task_router",
+          "name": "Create Task - Title at Maximum Length",
+          "request_body_json": {
+            "description": "Description for max length title",
+            "title": "T.repeat(255)"
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "description": "Description for max length title",
+            "id": "generated_task_id",
+            "status": "pending",
+            "title": "T.repeat(255)"
+          },
+          "response_status_code": 201,
+          "test_setup": {
+            "given": "No existing tasks",
+            "then": "A new task is created successfully",
+            "when": "A POST request is made to /tasks with title length = 255"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that a request with an invalid Content-Type header returns an error.",
+          "id": "tc_create_task_invalid_content_type",
+          "implementation_id": "main_include_task_router",
+          "name": "Create Task - Invalid Content-Type",
+          "request_body_json": "{ \"title\": \"Task\", \"description\": \"Description\" }",
+          "request_headers": {
+            "Content-Type": "text/plain"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "detail": "Unsupported Media Type"
+          },
+          "response_status_code": 415,
+          "test_setup": {
+            "given": "No existing tasks",
+            "then": "A 415 Unsupported Media Type error is returned",
+            "when": "A POST request is made to /tasks with Content-Type 'text/plain'"
           },
           "type": "negative"
         },
         {
-          "description": "Test creating a task where the 'title' field is at the maximum allowed length.",
-          "id": "tc_create_task_edge_long_title",
+          "description": "Verify that a request with invalid JSON in the body returns a parsing error.",
+          "id": "tc_create_task_invalid_json",
           "implementation_id": "main_include_task_router",
-          "name": "Create Task with Maximum Title Length",
+          "name": "Create Task - Invalid JSON Body",
+          "request_body_json": "{ title: 'No Quotes' }",
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "detail": "Invalid JSON"
+          },
+          "response_status_code": 400,
+          "test_setup": {
+            "given": "No existing tasks",
+            "then": "A 400 Bad Request error is returned",
+            "when": "A POST request is made to /tasks with invalid JSON"
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that extra fields in the request body are ignored or cause validation error, depending on strictness.",
+          "id": "tc_create_task_extra_fields",
+          "implementation_id": "main_include_task_router",
+          "name": "Create Task - Extra Fields in Body",
           "request_body_json": {
-            "description": "Test max length",
-            "due_date": "2024-07-04",
-            "priority": "low",
+            "description": "Extra field present",
+            "title": "Task with extra field",
+            "unexpected_field": "value"
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "description": "Extra field present",
+            "id": "generated_task_id",
+            "status": "pending",
+            "title": "Task with extra field"
+          },
+          "response_status_code": 201,
+          "test_setup": {
+            "given": "No existing tasks",
+            "then": "Task is created and extra fields are ignored (if allowed)",
+            "when": "A POST request is made to /tasks with extra fields"
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that creating a task with a duplicate title is handled as per business rules (allowed or not).",
+          "id": "tc_create_task_duplicate_title",
+          "implementation_id": "main_include_task_router",
+          "name": "Create Task - Duplicate Title",
+          "request_body_json": {
+            "description": "First instance",
+            "title": "Duplicate Task"
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "description": "First instance",
+            "id": "generated_task_id",
+            "status": "pending",
+            "title": "Duplicate Task"
+          },
+          "response_status_code": 201,
+          "test_setup": {
+            "given": "A task with title 'Duplicate Task' already exists",
+            "then": "A new task is created (if allowed)",
+            "when": "A POST request is made to /tasks with the same title"
+          },
+          "type": "edge"
+        }
+      ]
+    },
+    {
+      "implementation_id": "task_controller_create_task_endpoint",
+      "test_cases": [
+        {
+          "description": "Verify that a task is created successfully with valid TaskCreate data.",
+          "id": "tc_create_task_valid",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_with_valid_data",
+          "request_body_json": {
+            "description": "Write detailed API docs",
+            "due_date": "2024-07-01",
+            "priority": 3,
+            "title": "Complete documentation"
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "created_at": "2024-06-01T12:00:00Z",
+            "description": "Write detailed API docs",
+            "due_date": "2024-07-01",
+            "id": 1,
+            "priority": 3,
+            "title": "Complete documentation"
+          },
+          "response_status_code": 201,
+          "test_setup": {
+            "given": "The service layer is available and no conflicting tasks exist.",
+            "then": "A new task is created and returned with status 201.",
+            "when": "A valid POST request is sent to /tasks."
+          },
+          "type": "positive"
+        },
+        {
+          "description": "Verify that task creation fails when the required 'title' field is missing.",
+          "id": "tc_create_task_missing_required_field",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_missing_title",
+          "request_body_json": {
+            "description": "Missing title",
+            "due_date": "2024-07-01",
+            "priority": 1
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "detail": "Field 'title' is required."
+          },
+          "response_status_code": 400,
+          "test_setup": {
+            "given": "The service layer is available.",
+            "then": "The API returns 400 with field validation error.",
+            "when": "A POST request without 'title' is sent to /tasks."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that task creation fails when 'priority' is out of allowed range.",
+          "id": "tc_create_task_invalid_priority",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_invalid_priority_value",
+          "request_body_json": {
+            "description": "Priority should be between 1 and 5",
+            "due_date": "2024-07-01",
+            "priority": 10,
+            "title": "Invalid priority"
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "detail": "Priority must be between 1 and 5."
+          },
+          "response_status_code": 400,
+          "test_setup": {
+            "given": "The service layer is available.",
+            "then": "The API returns 400 with priority validation error.",
+            "when": "A POST request with invalid 'priority' is sent to /tasks."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that task creation fails when the 'title' field is an empty string.",
+          "id": "tc_create_task_empty_title",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_empty_title_string",
+          "request_body_json": {
+            "description": "Title is empty",
+            "due_date": "2024-07-01",
+            "priority": 2,
+            "title": ""
+          },
+          "request_headers": {
+            "Content-Type": "application/json"
+          },
+          "request_method": "POST",
+          "request_url": "/tasks",
+          "response_body_json": {
+            "detail": "Title cannot be empty."
+          },
+          "response_status_code": 400,
+          "test_setup": {
+            "given": "The service layer is available.",
+            "then": "The API returns 400 with title validation error.",
+            "when": "A POST request with empty 'title' is sent to /tasks."
+          },
+          "type": "edge"
+        },
+        {
+          "description": "Verify that task creation is successful when 'title' is at its maximum allowed length.",
+          "id": "tc_create_task_long_title",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_title_max_length",
+          "request_body_json": {
+            "description": "Title has maximum length",
+            "due_date": "2024-07-01",
+            "priority": 1,
             "title": "T.repeat(255)"
           },
           "request_headers": {
@@ -544,31 +735,31 @@
           "request_method": "POST",
           "request_url": "/tasks",
           "response_body_json": {
-            "description": "Test max length",
-            "due_date": "2024-07-04",
-            "id": "auto-generated",
-            "priority": "low",
-            "status": "pending",
+            "created_at": "2024-06-01T12:00:00Z",
+            "description": "Title has maximum length",
+            "due_date": "2024-07-01",
+            "id": 2,
+            "priority": 1,
             "title": "T.repeat(255)"
           },
           "response_status_code": 201,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "Task is created successfully with status 201",
-            "when": "A POST request is sent to /tasks with maximum length title"
+            "given": "The service layer is available.",
+            "then": "The API creates the task successfully.",
+            "when": "A POST request with title at max length is sent to /tasks."
           },
           "type": "edge"
         },
         {
-          "description": "Test creating a task where the 'title' field is at the minimum allowed length (1 character).",
-          "id": "tc_create_task_edge_minimum_title",
-          "implementation_id": "main_include_task_router",
-          "name": "Create Task with Minimum Title Length",
+          "description": "Verify that task creation fails when 'due_date' is not in expected format.",
+          "id": "tc_create_task_invalid_date_format",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_invalid_due_date_format",
           "request_body_json": {
-            "description": "Single letter task",
-            "due_date": "2024-07-05",
-            "priority": "medium",
-            "title": "A"
+            "description": "Due date format is invalid",
+            "due_date": "07-01-2024",
+            "priority": 2,
+            "title": "Invalid date"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -576,31 +767,26 @@
           "request_method": "POST",
           "request_url": "/tasks",
           "response_body_json": {
-            "description": "Single letter task",
-            "due_date": "2024-07-05",
-            "id": "auto-generated",
-            "priority": "medium",
-            "status": "pending",
-            "title": "A"
+            "detail": "Due date must be in YYYY-MM-DD format."
           },
-          "response_status_code": 201,
+          "response_status_code": 400,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "Task is created successfully with status 201",
-            "when": "A POST request is sent to /tasks with a 1-character title"
+            "given": "The service layer is available.",
+            "then": "The API returns 400 with due date validation error.",
+            "when": "A POST request with invalid date format is sent to /tasks."
           },
-          "type": "edge"
+          "type": "negative"
         },
         {
-          "description": "Test creating a task with a due date in the past.",
-          "id": "tc_create_task_edge_past_due_date",
-          "implementation_id": "main_include_task_router",
-          "name": "Create Task with Past Due Date",
+          "description": "Verify that task creation fails when 'due_date' is in the past.",
+          "id": "tc_create_task_past_due_date",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_with_past_due_date",
           "request_body_json": {
-            "description": "Test with past due date",
-            "due_date": "2020-01-01",
-            "priority": "low",
-            "title": "Expired Task"
+            "description": "Due date is in the past",
+            "due_date": "2022-01-01",
+            "priority": 3,
+            "title": "Past due"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -612,71 +798,21 @@
           },
           "response_status_code": 400,
           "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "Error is returned with status 400",
-            "when": "A POST request is sent to /tasks with a past due date"
+            "given": "The service layer is available.",
+            "then": "The API returns 400 with due date validation error.",
+            "when": "A POST request with past due date is sent to /tasks."
           },
           "type": "edge"
         },
         {
-          "description": "Test creating a task with malformed JSON in the request body.",
-          "id": "tc_create_task_negative_malformed_json",
-          "implementation_id": "main_include_task_router",
-          "name": "Create Task with Malformed JSON",
-          "request_body_json": "MALFORMED_JSON",
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "Malformed JSON"
-          },
-          "response_status_code": 400,
-          "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "400 error is returned indicating malformed JSON",
-            "when": "A POST request is sent to /tasks with malformed JSON"
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Test accessing the /tasks endpoint with GET method which is not allowed for task creation.",
-          "id": "tc_create_task_negative_get_method",
-          "implementation_id": "main_include_task_router",
-          "name": "Create Task with GET Method",
-          "request_body_json": null,
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "GET",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "Method Not Allowed"
-          },
-          "response_status_code": 405,
-          "test_setup": {
-            "given": "FastAPI app is running and /tasks endpoint is available",
-            "then": "405 Method Not Allowed is returned",
-            "when": "A GET request is sent to /tasks"
-          },
-          "type": "negative"
-        }
-      ]
-    },
-    {
-      "implementation_id": "task_controller_create_task_endpoint",
-      "test_cases": [
-        {
-          "description": "Verify that a task is successfully created when valid TaskCreate data is provided.",
-          "id": "create_task_positive_basic",
+          "description": "Verify that task creation works when the optional 'description' field is omitted.",
+          "id": "tc_create_task_no_description",
           "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Valid Input",
+          "name": "create_task_without_description",
           "request_body_json": {
-            "description": "This is a sample task description.",
             "due_date": "2024-07-01",
-            "priority": 3,
-            "title": "Sample Task"
+            "priority": 1,
+            "title": "No description"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -684,84 +820,31 @@
           "request_method": "POST",
           "request_url": "/tasks",
           "response_body_json": {
-            "created_at": "T.now()",
-            "description": "This is a sample task description.",
+            "created_at": "2024-06-01T12:00:00Z",
+            "description": null,
             "due_date": "2024-07-01",
-            "id": 1,
-            "priority": 3,
-            "title": "Sample Task"
+            "id": 3,
+            "priority": 1,
+            "title": "No description"
           },
           "response_status_code": 201,
           "test_setup": {
-            "given": "Task service is available and no prior tasks exist.",
-            "then": "Task is created and returned with status 201.",
-            "when": "POST /tasks with valid TaskCreate data."
+            "given": "The service layer is available.",
+            "then": "The API creates the task successfully with 'description' as null.",
+            "when": "A POST request omitting 'description' is sent to /tasks."
           },
           "type": "positive"
         },
         {
-          "description": "Verify that creating a task fails when the title field is missing.",
-          "id": "create_task_negative_missing_title",
+          "description": "Verify that task creation fails gracefully when the service layer throws an exception.",
+          "id": "tc_create_task_service_layer_failure",
           "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Missing Title",
+          "name": "create_task_service_layer_error",
           "request_body_json": {
-            "description": "No title provided.",
-            "due_date": "2024-07-01",
-            "priority": 2
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "Title is required."
-          },
-          "response_status_code": 400,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "HTTP 400 error returned with error details.",
-            "when": "POST /tasks with missing title field."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify that creating a task fails when priority is not an integer.",
-          "id": "create_task_negative_invalid_priority",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Invalid Priority",
-          "request_body_json": {
-            "description": "Priority should be integer.",
-            "due_date": "2024-07-01",
-            "priority": "high",
-            "title": "Task with Invalid Priority"
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "Priority must be an integer."
-          },
-          "response_status_code": 400,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "HTTP 400 error returned with error details.",
-            "when": "POST /tasks with invalid priority type."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify that creating a task works when title is at maximum allowed length.",
-          "id": "create_task_edge_long_title",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Title Length Boundary",
-          "request_body_json": {
-            "description": "Task with maximum title length.",
+            "description": "Service layer error",
             "due_date": "2024-07-01",
             "priority": 2,
-            "title": "T.repeat(255)"
+            "title": "Trigger failure"
           },
           "request_headers": {
             "Content-Type": "application/json"
@@ -769,185 +852,38 @@
           "request_method": "POST",
           "request_url": "/tasks",
           "response_body_json": {
-            "created_at": "T.now()",
-            "description": "Task with maximum title length.",
+            "detail": "Service layer failure: Database unavailable."
+          },
+          "response_status_code": 400,
+          "test_setup": {
+            "given": "The service layer is configured to throw an exception.",
+            "then": "The API returns 400 with service layer error details.",
+            "when": "A valid POST request is sent to /tasks."
+          },
+          "type": "negative"
+        },
+        {
+          "description": "Verify that task creation fails when Content-Type header is missing or incorrect.",
+          "id": "tc_create_task_content_type_missing",
+          "implementation_id": "task_controller_create_task_endpoint",
+          "name": "create_task_missing_content_type_header",
+          "request_body_json": {
+            "description": "No Content-Type header",
             "due_date": "2024-07-01",
-            "id": 2,
             "priority": 2,
-            "title": "T.repeat(255)"
+            "title": "Missing Content-Type"
           },
-          "response_status_code": 201,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "Task is created and returned with status 201.",
-            "when": "POST /tasks with title at boundary length."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify that creating a task fails when the request body is empty.",
-          "id": "create_task_negative_empty_body",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Empty Request Body",
-          "request_body_json": {},
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
+          "request_headers": {},
           "request_method": "POST",
           "request_url": "/tasks",
           "response_body_json": {
-            "detail": "Request body cannot be empty."
+            "detail": "Unsupported Media Type. Content-Type must be application/json."
           },
-          "response_status_code": 400,
+          "response_status_code": 415,
           "test_setup": {
-            "given": "Task service is available.",
-            "then": "HTTP 400 error returned with error details.",
-            "when": "POST /tasks with empty request body."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify that creating a task works when priority is at the minimum allowed value.",
-          "id": "create_task_edge_priority_min",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Priority Minimum Boundary",
-          "request_body_json": {
-            "description": "Task with minimum priority.",
-            "due_date": "2024-07-01",
-            "priority": 1,
-            "title": "Lowest Priority Task"
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "created_at": "T.now()",
-            "description": "Task with minimum priority.",
-            "due_date": "2024-07-01",
-            "id": 3,
-            "priority": 1,
-            "title": "Lowest Priority Task"
-          },
-          "response_status_code": 201,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "Task is created and returned with status 201.",
-            "when": "POST /tasks with minimum priority."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify that creating a task works when priority is at the maximum allowed value.",
-          "id": "create_task_edge_priority_max",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Priority Maximum Boundary",
-          "request_body_json": {
-            "description": "Task with maximum priority.",
-            "due_date": "2024-07-01",
-            "priority": 5,
-            "title": "Highest Priority Task"
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "created_at": "T.now()",
-            "description": "Task with maximum priority.",
-            "due_date": "2024-07-01",
-            "id": 4,
-            "priority": 5,
-            "title": "Highest Priority Task"
-          },
-          "response_status_code": 201,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "Task is created and returned with status 201.",
-            "when": "POST /tasks with maximum priority."
-          },
-          "type": "edge"
-        },
-        {
-          "description": "Verify that creating a task fails when due_date is in the past.",
-          "id": "create_task_negative_past_due_date",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Past Due Date",
-          "request_body_json": {
-            "description": "Due date cannot be in the past.",
-            "due_date": "2023-07-01",
-            "priority": 3,
-            "title": "Task with Past Due Date"
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "Due date must be in the future."
-          },
-          "response_status_code": 400,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "HTTP 400 error returned with error details.",
-            "when": "POST /tasks with past due date."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify that creating a task fails when due_date is not in the correct format.",
-          "id": "create_task_negative_invalid_date_format",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Invalid Date Format",
-          "request_body_json": {
-            "description": "Due date should be YYYY-MM-DD.",
-            "due_date": "July 1st, 2024",
-            "priority": 3,
-            "title": "Task with Invalid Date Format"
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "due_date must be in format YYYY-MM-DD."
-          },
-          "response_status_code": 400,
-          "test_setup": {
-            "given": "Task service is available.",
-            "then": "HTTP 400 error returned with error details.",
-            "when": "POST /tasks with invalid due_date format."
-          },
-          "type": "negative"
-        },
-        {
-          "description": "Verify that creating a task fails gracefully when the service layer raises an exception.",
-          "id": "create_task_negative_service_layer_error",
-          "implementation_id": "task_controller_create_task_endpoint",
-          "name": "Create Task - Service Layer Exception",
-          "request_body_json": {
-            "description": "This should cause the service layer to fail.",
-            "due_date": "2024-07-01",
-            "priority": 3,
-            "title": "Task Service Error"
-          },
-          "request_headers": {
-            "Content-Type": "application/json"
-          },
-          "request_method": "POST",
-          "request_url": "/tasks",
-          "response_body_json": {
-            "detail": "Service layer error: 'Task creation failed due to internal issue.'"
-          },
-          "response_status_code": 400,
-          "test_setup": {
-            "given": "Task service is available but will throw an exception.",
-            "then": "HTTP 400 error returned with error details.",
-            "when": "POST /tasks with valid data but service layer raises an exception."
+            "given": "The service layer is available.",
+            "then": "The API returns 415 with unsupported media type error.",
+            "when": "A POST request without Content-Type application/json is sent to /tasks."
           },
           "type": "negative"
         }
