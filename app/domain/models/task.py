@@ -8,6 +8,7 @@ class TaskCreate(BaseModel):
     priority: int = Field(..., ge=1, le=5)
     due_date: date
     user_name: str = Field(..., min_length=1, max_length=50)
+    location: Optional[str] = Field(None, min_length=1, max_length=100)
 
 
 class Task(TaskCreate):
