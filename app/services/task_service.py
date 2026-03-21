@@ -9,4 +9,4 @@ class TaskService:
 
     def create_task(self, task_data: TaskCreate) -> Task:
         self.logger.info(f"Creating task for user: {task_data.user_name}")
-        return self.repository.add_task(task_data)
+        return None
