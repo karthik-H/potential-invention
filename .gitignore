@@ -1,1 +1,15 @@
 .DS_Store
+node_modules/
+dist/
+build/
+coverage/
+.next/
+out/
+.turbo/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+tasks.json
